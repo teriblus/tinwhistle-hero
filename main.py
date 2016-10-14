@@ -1,8 +1,6 @@
 import pygame
 import score
 
-FPS = 40
-
 # Define some colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -14,16 +12,18 @@ size = (700, 500)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("tin whistle hero")
 
+GOAL_LINE = 500  # px
+SPEED = 5  # px/frame
+FPS = 60  # frame/sec
+
 clock = pygame.time.Clock()
 
-eventIn = 2000
-
-circlePosition = 50
 done = False
 print_text = False
 text_clock = pygame.time.Clock()
 text_delay = 0
 text = None
+circlePositions = [0,50,100,200,300]
 while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -32,9 +32,11 @@ while not done:
             print_text = True
             text_clock.tick()
             text_delay = 0
-            text = score.get_text(abs(500 - circlePosition))
+            text = score.get_text(abs(500 - circlePositions[-1]))
+            circlePositions.pop(-1)
 
-    circlePosition = (circlePosition + 10) % 700
+    for i in range(0,len(circlePositions)):
+        circlePositions[i] = (circlePositions[i] + SPEED) % 700
 
     if print_text:
         text_delay += text_clock.tick()
@@ -42,8 +44,9 @@ while not done:
             print_text = False
 
     screen.fill(WHITE)
-    pygame.draw.circle(screen, RED, [circlePosition, 50], 10)
-    pygame.draw.line(screen, BLACK, [500, 0], [500, 700], 5)
+    for circlePosition in circlePositions:
+        pygame.draw.circle(screen, RED, [circlePosition, 50], 10)
+    pygame.draw.line(screen, BLACK, [GOAL_LINE, 0], [GOAL_LINE, 700], 5)
 
     if print_text:
         screen.blit(text, [250, 250])
