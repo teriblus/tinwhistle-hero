@@ -13,7 +13,7 @@ screen = pygame.display.set_mode(size)
 pygame.display.set_caption("tin whistle hero")
 
 GOAL_LINE = 500  # px
-SPEED = 5  # px/frame
+SPEED = 4  # px/frame
 FPS = 60  # frame/sec
 
 clock = pygame.time.Clock()

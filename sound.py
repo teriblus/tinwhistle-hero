@@ -4,35 +4,72 @@ import essentia
 import essentia.standard
 import essentia.streaming
 
-from pylab import *
-from numpy import *
+from pylab import plt, plot, tight_layout, savefig, show, np
+from numpy import nan, Infinity
 
-filename = './andro.mp3'
-fs = 44100
-H = 128
-M = 2048
+class Song:
+    notes = [
+        600,
+        660,
+        740,
+        805,
+        880,
+        1000
+    ]
 
-predominantMelody = essentia.standard.PredominantPitchMelodia(frameSize=M, hopSize=H)
-x = essentia.standard.MonoLoader(filename = filename, sampleRate = fs)()
+    def __init__(self, filename):
+        self.fs = 44100
+        self.H = 128
+        self.M = 2048
 
-pitch, pitchConfidence = predominantMelody(x)
+        predominantMelody = essentia.standard.PredominantPitchMelodia(frameSize=self.M, hopSize=self.H)
+        self.x = essentia.standard.MonoLoader(filename=filename, sampleRate=self.fs)()
 
-plt.figure(1, figsize=(9.5, 4))
-plt.subplot(2,1,1)
+        self.pitch, self.pitchConfidence = predominantMelody(self.x)
 
-plt.plot(np.arange(x.size)/float(fs), x)
-plt.axis([0, x.size/float(fs), min(x), max(x)])
-plt.ylabel('amplitude')
-plt.title('x (carnatic.wav)')
+    def get_note(self, time):
+        pitchIndex = time * self.fs / 1000 / self.H
+        frequency = self.pitch[pitchIndex]
+        if frequency:
+            return self.translate_frequency_to_note(frequency)
+        return None
 
-plt.subplot(2,1,2)
-frmTime = H*np.arange(pitch.size)/float(fs)
-pitch[pitch==0]=nan
-plot(frmTime, pitch, color='g', linewidth = 1.5)
-plt.axis([0, x.size/float(fs), 100, 300])
-plt.title('prominent melody')
+    @staticmethod
+    def translate_frequency_to_note(frequency):
+        closestNote = None
+        offset = Infinity
+        for i in range(0, len(Song.notes)):
+            if i == 0:
+                if frequency < Song.notes[i + 1]:
+                    closestNote = i
+                    offset = abs(frequency - Song.notes[i])
+            elif i < len(Song.notes) - 1:
+                if Song.notes[i - 1] < frequency < Song.notes[i + 1] and offset > abs(frequency - Song.notes[i]):
+                    closestNote = i
+                    offset = abs(frequency - Song.notes[i])
+            elif i == len(Song.notes) - 1:
+                if Song.notes[i - 1] < frequency and offset > abs(frequency - Song.notes[i]):
+                    closestNote = i
+                    offset = abs(frequency - Song.notes[i])
+        return closestNote
 
-tight_layout()
-savefig('predominantMelody.png')
+    def plot_frequencies(self):
+        plt.figure(1, figsize=(9.5, 4))
+        plt.subplot(2, 1, 1)
 
-show()
+        plt.plot(np.arange(self.x.size) / float(self.fs), self.x)
+        plt.axis([0, self.x.size / float(self.fs), min(self.x), max(self.x)])
+        plt.ylabel('amplitude')
+        plt.title('x (carnatic.wav)')
+
+        plt.subplot(2, 1, 2)
+        frmTime = self.H * np.arange(self.pitch.size) / float(self.fs)
+        self.pitch[self.pitch == 0] = nan
+        plot(frmTime, self.pitch, color='g', linewidth=1.5)
+        plt.axis([0, self.x.size / float(self.fs), 500, 1200])
+        plt.title('prominent melody')
+
+        tight_layout()
+        savefig('predominantMelody.png')
+
+        show()
