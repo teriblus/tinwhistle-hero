@@ -13,7 +13,12 @@ class sound_test(unittest.TestCase):
         self.assertEqual(song.translate_frequency_to_note(1200), 5)
 
     def get_note_test(self):
-        self.assertEqual(song.get_note(5000),0)
+        self.assertEqual(song.get_note(5000), 0)
+        self.assertEqual(song.get_note(6493), 5)
+        self.assertEqual(song.get_note(-1000), None)
+        self.assertEqual(song.get_note(100000), None)
+        self.assertEqual(song.get_note(1000), None)
+
 
 def main():
     unittest.main()

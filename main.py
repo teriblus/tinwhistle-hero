@@ -1,12 +1,19 @@
 import pygame
 import score
+import sound
+import color
 
-# Define some colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
+
+def get_circle_positions(song, fps, pxPerFrame, goalLinePosition):
+    duration = song.get_duration()
+    pxPerMillisecond = (fps * pxPerFrame) / 1000.0
+    positions = []
+    for i in range(0, duration, 20):
+        note = song.get_note(i)
+        if note:
+            positions.append([note, -int((i * pxPerMillisecond) - goalLinePosition)])
+    return positions
+
 
 size = (700, 500)
 screen = pygame.display.set_mode(size)
@@ -23,7 +30,9 @@ print_text = False
 text_clock = pygame.time.Clock()
 text_delay = 0
 text = None
-circlePositions = [0,50,100,200,300]
+
+song = sound.Song('/home/lecorgnt/Bureau/perso/tinwhistlehero/andro.mp3')
+circlePositions = get_circle_positions(song, FPS, SPEED, GOAL_LINE)
 while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -32,21 +41,21 @@ while not done:
             print_text = True
             text_clock.tick()
             text_delay = 0
-            text = score.get_text(abs(500 - circlePositions[-1]))
+            text = score.get_text(abs(GOAL_LINE - circlePositions[-1][1]))
             circlePositions.pop(-1)
 
-    for i in range(0,len(circlePositions)):
-        circlePositions[i] = (circlePositions[i] + SPEED) % 700
+    for i in range(0, len(circlePositions)):
+        circlePositions[i][1] = (circlePositions[i][1] + SPEED)
 
     if print_text:
         text_delay += text_clock.tick()
         if text_delay > 500:
             print_text = False
 
-    screen.fill(WHITE)
+    screen.fill(color.WHITE)
     for circlePosition in circlePositions:
-        pygame.draw.circle(screen, RED, [circlePosition, 50], 10)
-    pygame.draw.line(screen, BLACK, [GOAL_LINE, 0], [GOAL_LINE, 700], 5)
+        pygame.draw.circle(screen, color.RED, [circlePosition[1], 50 + 50 * circlePosition[0]], 10)
+    pygame.draw.line(screen, color.BLACK, [GOAL_LINE, 0], [GOAL_LINE, size[0]], 5)
 
     if print_text:
         screen.blit(text, [250, 250])

@@ -7,6 +7,7 @@ import essentia.streaming
 from pylab import plt, plot, tight_layout, savefig, show, np
 from numpy import nan, Infinity
 
+
 class Song:
     notes = [
         600,
@@ -28,11 +29,24 @@ class Song:
         self.pitch, self.pitchConfidence = predominantMelody(self.x)
 
     def get_note(self, time):
+        """
+        return the predominant note in the song at the given time
+        :param time: in ms
+        :return: note index
+        """
         pitchIndex = time * self.fs / 1000 / self.H
+        if not 0 < pitchIndex < len(self.pitch) - 1:
+            return None
         frequency = self.pitch[pitchIndex]
         if frequency:
             return self.translate_frequency_to_note(frequency)
         return None
+
+    def get_duration(self):
+        """
+        :return: song duration in ms
+        """
+        return (len(self.x) * 1000) / self.fs
 
     @staticmethod
     def translate_frequency_to_note(frequency):
